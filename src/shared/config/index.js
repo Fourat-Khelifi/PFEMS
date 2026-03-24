@@ -16,3 +16,4 @@ export const APP_NAME = process.env.APP_NAME || "PFE Management System";
 export const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:5173";
 export const EMAIL_FROM_NAME =
   process.env.EMAIL_FROM_NAME || "PFE Management Team";
+export const RESEND_API_KEY = process.env.RESEND_API_KEY;

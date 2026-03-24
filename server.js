@@ -31,7 +31,9 @@ app.use(cookieParser());
 app.use(logger("combined"));
 
 // ---------------- Connect DB ----------------
+console.log("Attempting to connect to DB...");
 await connectDB();
+console.log("DB connected successfully.");
 
 // ---------------- Swagger ----------------
 app.use(
@@ -54,6 +56,7 @@ app.use("/api", teamDRouter);
 app.use(errorMiddleware);
 
 // ---------------- Start Server ----------------
+console.log(`Starting server on port ${PORT}...`);
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });
