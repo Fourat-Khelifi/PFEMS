@@ -237,13 +237,13 @@ export const getUserStoriesRelatedToSprint = async (projectId, sprintId) => {
     message: "User stories retrieved successfully", 
     data: {
       sprint: {
-        _id: sprintId,
+        id: sprint._id.toString(),
         title: sprint.title,
         goal: sprint.goal,
         startDate: sprint.startDate,
-        endDate: sprint.endDate
-      },
-      userStories
+        endDate: sprint.endDate,
+        orderIndex: sprint.orderIndex,
+      }
     }
   };
 };

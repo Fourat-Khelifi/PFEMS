@@ -48,7 +48,6 @@ export const createSprint = async (sprintData, studentId) => {
       endDate: sprintEnd,
       orderIndex,
       projectId: project._id,
-      userStories: []
     });
 
     const savedSprint = await newSprint.save({ session });
@@ -62,7 +61,14 @@ export const createSprint = async (sprintData, studentId) => {
     return {
       success: true,
       message: "Sprint created successfully",
-      data: savedSprint
+      data: {
+        id: savedSprint._id,
+        title: savedSprint.title,
+        goal: savedSprint.goal,
+        startDate: savedSprint.startDate,
+        endDate: savedSprint.endDate,
+        orderIndex: savedSprint.orderIndex,
+      }
     };
 
   } catch (error) {
@@ -115,12 +121,12 @@ export const updateSprint = async (sprintId, updateData, studentId) => {
         error.status = StatusCodes.BAD_REQUEST;
         throw error;
       }
-      
+
       // Also validate start < end if both or one is changing (handled by Joi mostly, but good to double check logic)
       if (newEnd <= newStart) {
-         const error = new Error("End date must be after start date");
-         error.status = StatusCodes.BAD_REQUEST;
-         throw error;
+        const error = new Error("End date must be after start date");
+        error.status = StatusCodes.BAD_REQUEST;
+        throw error;
       }
     }
 
@@ -139,7 +145,15 @@ export const updateSprint = async (sprintId, updateData, studentId) => {
     return {
       success: true,
       message: "Sprint updated successfully",
-      data: updatedSprint
+      data: {
+        id: updatedSprint._id,
+        title: updatedSprint.title,
+        goal: updatedSprint.goal,
+        startDate: updatedSprint.startDate,
+        endDate: updatedSprint.endDate,
+        orderIndex: updatedSprint.orderIndex,
+        projectId: updatedSprint.projectId
+      }
     };
 
   } catch (error) {
@@ -186,7 +200,7 @@ export const deleteSprint = async (sprintId, studentId) => {
     // Given the Project model has `sprints` array, let's keep it consistent with "active" sprints or just leave it.
     // If we pull it, we lose the history in the project structure easily. 
     // Let's NOT pull it, but rely on the Sprint's deletedAt flag.)
-    
+
     // But wait, if we don't pull it, `project.sprints` will contain deleted sprints. 
     // If the frontend fetches project with populated sprints, it needs to filter.
     // Let's stick to just marking the sprint as deleted.
@@ -216,57 +230,57 @@ export const reorderSprints = async (sprintsOrder, studentId) => {
     // 1. Validate that all sprints belong to the same project and the student is authorized
     // We'll pick the first sprint to find the project, then verify all others.
     if (!sprintsOrder || sprintsOrder.length === 0) {
-        return { success: true, message: "No sprints to reorder" };
+      return { success: true, message: "No sprints to reorder" };
     }
 
     const firstSprintId = sprintsOrder[0].sprintId;
     const firstSprint = await Sprint.findOne({ _id: firstSprintId, deletedAt: null }).session(session);
-    
+
     if (!firstSprint) {
-        const error = new Error(`Sprint ${firstSprintId} not found`);
-        error.status = StatusCodes.NOT_FOUND;
-        throw error;
+      const error = new Error(`Sprint ${firstSprintId} not found`);
+      error.status = StatusCodes.NOT_FOUND;
+      throw error;
     }
 
     const projectId = firstSprint.projectId;
 
     // Verify student authorization for this project
     const project = await Project.findOne({
-        _id: projectId,
-        contributors: studentId,
-        deletedAt: null
+      _id: projectId,
+      contributors: studentId,
+      deletedAt: null
     }).session(session);
 
     if (!project) {
-        const error = new Error("You are not authorized to reorder sprints for this project");
-        error.status = StatusCodes.FORBIDDEN;
-        throw error;
+      const error = new Error("You are not authorized to reorder sprints for this project");
+      error.status = StatusCodes.FORBIDDEN;
+      throw error;
     }
 
     // 2. Update each sprint
     // We need to ensure all sprintIds provided belong to this project
     const updatePromises = sprintsOrder.map(async (item) => {
-        const sprint = await Sprint.findOne({ 
-            _id: item.sprintId, 
-            projectId: projectId, // Security check: must belong to same project
-            deletedAt: null 
-        }).session(session);
+      const sprint = await Sprint.findOne({
+        _id: item.sprintId,
+        projectId: projectId, // Security check: must belong to same project
+        deletedAt: null
+      }).session(session);
 
-        if (!sprint) {
-            throw new Error(`Sprint ${item.sprintId} not found or does not belong to the project`);
-        }
+      if (!sprint) {
+        throw new Error(`Sprint ${item.sprintId} not found or does not belong to the project`);
+      }
 
-        sprint.orderIndex = item.orderIndex;
-        return sprint.save({ session });
+      sprint.orderIndex = item.orderIndex;
+      return sprint.save({ session });
     });
 
     await Promise.all(updatePromises);
 
     // 3. Verify that sprintsOrder length matches project sprints length
     if (sprintsOrder.length !== project.sprints.length) {
-        const error = new Error(`Number of sprints to reorder (${sprintsOrder.length}) does not match project sprints count (${project.sprints.length})`);
-        error.status = StatusCodes.BAD_REQUEST;
-        throw error;
+      const error = new Error(`Number of sprints to reorder (${sprintsOrder.length}) does not match project sprints count (${project.sprints.length})`);
+      error.status = StatusCodes.BAD_REQUEST;
+      throw error;
     }
 
     await session.commitTransaction();
