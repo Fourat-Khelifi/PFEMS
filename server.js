@@ -16,8 +16,25 @@ import swaggerSpec from "./src/shared/config/swagger.js";
 const app = express();
 
 // ---------------- CORS Setup ----------------
-app.use(cors());
+const allowedOrigins = [
+  "http://localhost:5173",            
+  "https://pfems-production.up.railway.app",
+  CORS_ORIGIN
+];
 
+app.use(cors({
+  origin: function (origin, callback) {
+    // allow requests with no origin (Postman, curl)
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    } else {
+      return callback(new Error(`CORS not allowed for ${origin}`));
+    }
+  },
+  credentials: true, // must match fetch
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+}));
 // ---------------- Middleware ----------------
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
