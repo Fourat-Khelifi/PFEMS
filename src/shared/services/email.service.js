@@ -1,6 +1,6 @@
 import transporter from '../config/nodemailer.js';
 import { generateVerificationEmailTemplate, generateVerificationEmailText } from '../utils/emailVerificationTemplate.js';
-import { EMAIL_FROM_NAME, NODEMAILER_EMAIL, FRONTEND_URL } from '../config/index.js';
+import { FRONTEND_URL } from '../config/index.js';
 import { generateResetPasswordEmailTemplate, generateResetPasswordEmailText } from '../utils/resetPasswordTemplate.js';
 
 export const sendVerificationEmail = async ({ to, userName, verificationToken }) => {
@@ -16,7 +16,6 @@ export const sendVerificationEmail = async ({ to, userName, verificationToken })
 
     // Email options
     const mailOptions = {
-      from: `"${EMAIL_FROM_NAME}" <${NODEMAILER_EMAIL}>`,
       to,
       subject: `Verify Your Email Address`,
       html: htmlContent,
@@ -60,7 +59,6 @@ export const sendPasswordResetEmail = async ({ to, userName, resetToken }) => {
     });
 
     const mailOptions = {
-      from: `"${EMAIL_FROM_NAME}" <${NODEMAILER_EMAIL}>`,
       to,
       subject: `Reset Your Password`,
       html: htmlContent,

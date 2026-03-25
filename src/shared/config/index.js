@@ -17,3 +17,9 @@ export const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:5173";
 export const EMAIL_FROM_NAME =
   process.env.EMAIL_FROM_NAME || "PFE Management Team";
 export const RESEND_API_KEY = process.env.RESEND_API_KEY;
+// Resend `from` must be a verified domain (or onboarding@resend.dev for limited testing).
+// Do not reuse NODEMAILER_EMAIL here—that was for SMTP and is often a personal Gmail, which Resend rejects.
+export const RESEND_FROM =
+  process.env.RESEND_FROM ||
+  process.env.RESEND_FROM_EMAIL ||
+  null;
