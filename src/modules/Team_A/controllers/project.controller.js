@@ -24,12 +24,17 @@ export const getProject = async (req, res, next) => {
 
     if (!projectId) {
       return res.status(StatusCodes.OK).json({
-        success: true,
-        data: {}
+        success: true
       });
     }
 
     const result = await projectService.getProject(projectId);
+
+    if (!result.data) {
+      return res.status(StatusCodes.OK).json({
+        success: result.success
+      });
+    }
 
     res.status(StatusCodes.OK).json({
       success: result.success,
