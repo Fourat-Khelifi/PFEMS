@@ -16,13 +16,7 @@ import swaggerSpec from "./src/shared/config/swagger.js";
 const app = express();
 
 // ---------------- CORS Setup ----------------
-app.use(
-  cors({
-    origin: CORS_ORIGIN, // <-- configurable origin
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    credentials: true, // allows cookies/auth headers
-  }),
-);
+app.use(cors());
 
 // ---------------- Middleware ----------------
 app.use(express.json());
