@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 import Project from "../models/project.model.js";
 import Student from "../../Authentication/models/student.model.js";
+import User from "../../Authentication/models/user.models.js";
 
 export const createProject = async (projectData, studentId) => {
   const session = await mongoose.startSession();
@@ -101,18 +102,27 @@ export const createProject = async (projectData, studentId) => {
       );
     }
 
+    // Fetch additional info for the response
+    const studentUser = await User.findById(student.userId).session(session);
+    const uniSupervisorUser = await User.findById(student.uniSupervisorId).session(session);
+    const compSupervisorUser = await User.findById(student.compSupervisorId).session(session);
+
     await session.commitTransaction();
 
     return {
       success: true,
-      message: "Project created successfully",
       data: {
-        projectId: savedProject._id,
+        id: savedProject._id,
         title: savedProject.title,
         description: savedProject.description,
-        startDate: savedProject.startDate,
-        endDate: savedProject.endDate,
-        contributors: savedProject.contributors,
+        studentId: student._id,
+        studentName: studentUser.fullName,
+        uniSupervisorId: student.uniSupervisorId,
+        uniSupervisorName: uniSupervisorUser ? uniSupervisorUser.fullName : "Unknown",
+        compSupervisorId: student.compSupervisorId,
+        compSupervisorName: compSupervisorUser ? compSupervisorUser.fullName : "Unknown",
+        startDate: savedProject.startDate.toISOString().split('T')[0],
+        endDate: savedProject.endDate.toISOString().split('T')[0],
         createdAt: savedProject.createdAt
       }
     };
@@ -193,13 +203,17 @@ export const getProject = async (projectId) => {
         startDate: { $first: "$startDate" },
         endDate: { $first: "$endDate" },
         contributors: { 
-          $addToSet: {
-            _id: "$contributorsData.user._id",
+          $push: {
+            _id: "$contributorsData._id",
+            userId: "$contributorsData.userId",
             fullName: "$contributorsData.user.fullName",
-            email: "$contributorsData.user.email"
+            email: "$contributorsData.user.email",
+            uniSupervisorId: "$contributorsData.uniSupervisorId",
+            compSupervisorId: "$contributorsData.compSupervisorId"
           }
         },
-        sprints: { $first: "$sprintsData" }
+        sprints: { $first: "$sprintsData" },
+        createdAt: { $first: "$createdAt" }
       }
     },
     {
@@ -210,7 +224,8 @@ export const getProject = async (projectId) => {
         startDate: 1,
         endDate: 1,
         contributors: 1,
-        sprints: 1
+        sprints: 1,
+        createdAt: 1
       }
     }
   ]).exec();
@@ -222,28 +237,40 @@ export const getProject = async (projectId) => {
   }
 
   const result = project[0];
+  const primaryStudent = result.contributors[0];
 
-  // 2. Final date formatting (ISO strings)
+  // Fetch names for supervisors (using first student as representative)
+  const [uniSupervisorUser, compSupervisorUser] = await Promise.all([
+    User.findById(primaryStudent.uniSupervisorId),
+    User.findById(primaryStudent.compSupervisorId)
+  ]);
+
   return {
     success: true,
-    message: "Project retrieved successfully",
     data: { 
-      _id: result._id.toString(),
+      id: result._id.toString(),
       title: result.title,
       description: result.description,
-      startDate: result.startDate.toISOString(),
-      endDate: result.endDate.toISOString(),
+      studentId: primaryStudent._id.toString(),
+      studentName: primaryStudent.fullName,
+      uniSupervisorId: primaryStudent.uniSupervisorId.toString(),
+      uniSupervisorName: uniSupervisorUser ? uniSupervisorUser.fullName : "Unknown",
+      compSupervisorId: primaryStudent.compSupervisorId.toString(),
+      compSupervisorName: compSupervisorUser ? compSupervisorUser.fullName : "Unknown",
+      startDate: result.startDate.toISOString().split('T')[0],
+      endDate: result.endDate.toISOString().split('T')[0],
+      createdAt: result.createdAt,
       contributors: result.contributors.map(c => ({
-        _id: c._id.toString(),
+        id: c._id.toString(),
         fullName: c.fullName,
         email: c.email
       })),
       sprints: result.sprints.map(s => ({
-        _id: s._id.toString(),
+        id: s._id.toString(),
         title: s.title,
         goal: s.goal,
-        startDate: s.startDate.toISOString(),
-        endDate: s.endDate.toISOString(),
+        startDate: s.startDate.toISOString().split('T')[0],
+        endDate: s.endDate.toISOString().split('T')[0],
         orderIndex: s.orderIndex
       }))
     }
