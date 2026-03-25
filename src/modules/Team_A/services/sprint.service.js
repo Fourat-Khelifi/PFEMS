@@ -319,7 +319,6 @@ export const listSprints = async (projectId) => {
     startDate: s.startDate,
     endDate: s.endDate,
     orderIndex: s.orderIndex,
-    projectId: s.projectId
   }));
 
   return {
