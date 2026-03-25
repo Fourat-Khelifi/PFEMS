@@ -299,3 +299,32 @@ export const reorderSprints = async (sprintsOrder, studentId) => {
     session.endSession();
   }
 };
+export const listSprints = async (projectId) => {
+  if (!projectId) {
+    return {
+      success: true,
+      data: []
+    };
+  }
+
+  const sprints = await Sprint.find({
+    projectId,
+    deletedAt: null
+  }).sort({ orderIndex: 1 }).exec();
+
+  const formattedSprints = sprints.map(s => ({
+    id: s._id.toString(),
+    title: s.title,
+    goal: s.goal,
+    startDate: s.startDate,
+    endDate: s.endDate,
+    orderIndex: s.orderIndex,
+    projectId: s.projectId
+  }));
+
+  return {
+    success: true,
+    message: "Sprints retrieved successfully",
+    data: formattedSprints
+  };
+};

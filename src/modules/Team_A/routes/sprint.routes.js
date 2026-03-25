@@ -78,6 +78,22 @@ const router = express.Router();
 /**
  * @swagger
  * /sprints:
+ *   get:
+ *     summary: Get all sprints for the student's project
+ *     tags: [Sprints]
+ *     security:
+ *       - BearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Sprints retrieved successfully
+ *       401:
+ *         $ref: '#/components/responses/Unauthorized'
+ */
+router.get("/", authenticateToken, authorizeStudent, sprintController.listSprints);
+
+/**
+ * @swagger
+ * /sprints:
  *   post:
  *     summary: Create a new sprint
  *     tags: [Sprints]

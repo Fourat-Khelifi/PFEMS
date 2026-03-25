@@ -67,3 +67,17 @@ export const reorderSprints = async (req, res, next) => {
     next(error);
   }
 };
+export const listSprints = async (req, res, next) => {
+  try {
+    const projectId = req.student.project;
+    const result = await sprintService.listSprints(projectId);
+
+    res.status(StatusCodes.OK).json({
+      success: result.success,
+      message: result.message,
+      data: result.data
+    });
+  } catch (error) {
+    next(error);
+  }
+};
