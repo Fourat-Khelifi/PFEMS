@@ -6,14 +6,14 @@ import User from "../../Authentication/models/user.models.js";
 export const createProject = async (projectData, studentId) => {
   const session = await mongoose.startSession();
   session.startTransaction();
-  
+
   try {
     const { title, description, startDate, endDate, contributors = [] } = projectData;
 
     // Validate dates
     const start = new Date(startDate);
     const end = new Date(endDate);
-    
+
     if (end <= start) {
       const error = new Error("End date must be after start date");
       error.status = 400;
@@ -22,7 +22,7 @@ export const createProject = async (projectData, studentId) => {
 
     // Check if student already has a project
     const student = await Student.findById(studentId).session(session);
-    
+
     if (!student) {
       const error = new Error("Student not found");
       error.status = 404;
@@ -163,9 +163,9 @@ export const getProject = async (projectId) => {
         foreignField: "_id",
         as: "contributorsData.user",
         pipeline: [{
-          $match: { 
+          $match: {
             isActive: true,
-            deletedAt: null 
+            deletedAt: null
           }
         }]
       }
@@ -182,15 +182,15 @@ export const getProject = async (projectId) => {
         pipeline: [
           { $match: { deletedAt: null } },
           { $sort: { orderIndex: 1 } },
-          { 
-            $project: { 
+          {
+            $project: {
               _id: 1,
               title: 1,
               goal: 1,
               startDate: 1,
               endDate: 1,
               orderIndex: 1
-            } 
+            }
           }
         ]
       }
@@ -202,7 +202,7 @@ export const getProject = async (projectId) => {
         description: { $first: "$description" },
         startDate: { $first: "$startDate" },
         endDate: { $first: "$endDate" },
-        contributors: { 
+        contributors: {
           $push: {
             _id: "$contributorsData._id",
             userId: "$contributorsData.userId",
@@ -232,8 +232,7 @@ export const getProject = async (projectId) => {
 
   if (!project.length) {
     return {
-      success: true,
-      data: {}
+      success: true
     };
   }
 
@@ -248,7 +247,7 @@ export const getProject = async (projectId) => {
 
   return {
     success: true,
-    data: { 
+    data: {
       id: result._id.toString(),
       title: result.title,
       description: result.description,
@@ -280,7 +279,7 @@ export const getProject = async (projectId) => {
 
 export const updateProject = async (projectId, updateData) => {
   const { title, description, startDate, endDate } = updateData;
-  
+
   const project = await Project.findOne({ _id: projectId, deletedAt: null });
   if (!project) {
     const error = new Error("Project not found");
@@ -318,7 +317,7 @@ export const deleteProject = async (projectId) => {
 
   try {
     const project = await Project.findOne({ _id: projectId, deletedAt: null }).session(session);
-    
+
     if (!project) {
       const error = new Error("Project not found");
       error.status = 404;
@@ -340,7 +339,7 @@ export const deleteProject = async (projectId) => {
     }
 
     await session.commitTransaction();
-    
+
     return {
       success: true,
       message: "Project deleted successfully"
@@ -355,8 +354,8 @@ export const deleteProject = async (projectId) => {
 
 export const getStudentsWithoutProject = async () => {
   // Get all student IDs that are assigned to projects (in one optimized query)
-  const studentsWithProjects = await Project.distinct("contributors", { 
-    deletedAt: null 
+  const studentsWithProjects = await Project.distinct("contributors", {
+    deletedAt: null
   });
 
   // Get students NOT in that list with user details
@@ -491,8 +490,8 @@ export const removeContributors = async ({ projectId, studentIds, requestingStud
       deletedAt: null,
       contributors: requestingStudentId // Requester must be existing contributor
     })
-    .select('contributors')
-    .session(session);
+      .select('contributors')
+      .session(session);
 
     if (!project) {
       const error = new Error("Project not found or access denied");
@@ -543,7 +542,7 @@ export const removeContributors = async ({ projectId, studentIds, requestingStud
     if (validStudentIds.length > 0) {
       // Update project contributors
       const projectUpdate = await Project.updateOne(
-        { 
+        {
           _id: projectId,
           contributors: { $all: validStudentIds } // Ensure all exist before removal
         },
@@ -569,7 +568,7 @@ export const removeContributors = async ({ projectId, studentIds, requestingStud
     };
   } catch (error) {
     await session.abortTransaction();
-    
+
     // Handle specific transaction errors
     if (error.message.includes("Concurrent modification")) {
       const conflictError = new Error("Project modified by another user. Please refresh and retry.");
