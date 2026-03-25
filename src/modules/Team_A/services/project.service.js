@@ -231,9 +231,10 @@ export const getProject = async (projectId) => {
   ]).exec();
 
   if (!project.length) {
-    const error = new Error("Project not found or access denied");
-    error.status = 404;
-    throw error;
+    return {
+      success: true,
+      data: {}
+    };
   }
 
   const result = project[0];
