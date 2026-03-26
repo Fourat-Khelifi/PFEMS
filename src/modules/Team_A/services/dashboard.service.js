@@ -186,7 +186,7 @@ export const getProgress = async (projectId) => {
                 {
                   $project: {
                     _id: 1,
-                    storyName: 1,
+                    title: 1,
                     totalTasks: '$stats.totalTasks',
                     doneTasks: '$stats.doneTasks'
                   }
@@ -230,7 +230,7 @@ export const getProgress = async (projectId) => {
 
       return {
         _id: story._id,
-        storyName: story.storyName,
+        title: story.title,
         totalTasks,
         doneTasks,
         progress: computePercentage(doneTasks, totalTasks)
@@ -476,7 +476,7 @@ export const getStandbyTasks = async (projectId) => {
         status: 'Standby'
     }).populate({
         path: 'userStoryId',
-        select: 'storyName priority'
+        select: 'title priority'
     }).lean();
 
     return tasks;
@@ -497,7 +497,7 @@ export const getPendingValidations = async (projectId) => {
         status: 'Done'
     }).populate({
         path: 'userStoryId',
-        select: 'storyName'
+        select: 'title'
     }).lean();
 
     const pendingTasks = [];

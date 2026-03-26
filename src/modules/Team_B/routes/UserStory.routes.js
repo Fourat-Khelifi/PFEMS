@@ -13,7 +13,7 @@ const router = express.Router();
  * /user-story:
  *   post:
  *     summary: Create a new user story
- *     description: Creates a new user story within a sprint. The user story name must be unique within the sprint.
+ *     description: Creates a new user story within a sprint. The title must be unique within the sprint.
  *     tags: [User Stories]
  *     security:
  *       - BearerAuth: []
@@ -48,7 +48,7 @@ const router = express.Router();
  *       404:
  *         description: Sprint not found
  *       409:
- *         description: User story name already exists in this sprint
+ *         description: User story title already exists in this sprint
  */
 router.post("/",authenticateToken,authorizeStudent,validate(createUserStorySchema),userStoryController.createUserStory);
 
@@ -218,7 +218,7 @@ router.get("/:userStoryId",authenticateToken,authorizeStudent,userStoryControlle
  *                 data:
  *                   $ref: '#/components/schemas/UserStory'
  *       400:
- *         description: Validation error (e.g., due date must be after start date)
+ *         description: Validation error (e.g., end date must be after start date)
  *       401:
  *         $ref: '#/components/responses/Unauthorized'
  *       403:
@@ -226,7 +226,7 @@ router.get("/:userStoryId",authenticateToken,authorizeStudent,userStoryControlle
  *       404:
  *         description: User story or sprint not found
  *       409:
- *         description: User story name already exists in the target sprint
+ *         description: User story title already exists in the target sprint
  */
 router.put("/:userStoryId", authenticateToken, authorizeStudent, validate(updateUserStorySchema), userStoryController.updateUserStory);
 
@@ -265,10 +265,10 @@ router.put("/:userStoryId", authenticateToken, authorizeStudent, validate(update
  *                 data:
  *                   type: object
  *                   properties:
- *                     userStoryId:
+ *                     id:
  *                       type: string
  *                       example: 507f1f77bcf86cd799439011
- *                     storyName:
+ *                     title:
  *                       type: string
  *                       example: User Authentication System
  *                     deletedTasksCount:

@@ -3,7 +3,7 @@ import mongoose from 'mongoose';
 const { Schema, model } = mongoose;
 
 const UserStorySchema = new Schema({
-    storyName: { type: String, required: true, trim: true },
+    title: { type: String, required: true, trim: true },
 
     description: { type: String, trim: true },
 
@@ -14,15 +14,11 @@ const UserStorySchema = new Schema({
         default: 'medium'
     },
 
-    storyPointEstimate: {
-        type: Number,
-        required: true,
-        min: 0
-    },
+
 
     startDate: { type: Date, required: true },
 
-    dueDate: { type: Date, required: true },
+    endDate: { type: Date, required: true },
 
     tasks: [{ type: Schema.Types.ObjectId, ref: 'Task' }],
 
@@ -43,7 +39,7 @@ UserStorySchema.index(
 
 // Unicité du nom de la UserStory dans un même sprint
 UserStorySchema.index(
-    { storyName: 1, sprintId: 1 },
+    { title: 1, sprintId: 1 },
     { unique: true }
 );
 

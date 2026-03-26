@@ -17,7 +17,7 @@ const router = express.Router();
 // Rate limiting configurations
 const signupLimiter = rateLimit({
   windowMs: 60 * 60 * 1000, // 1 hour
-  max: 10,
+  max: 10000,
   message: {
     message: "Too many signup attempts from this IP, please try again later.",
   },
@@ -27,7 +27,7 @@ const signupLimiter = rateLimit({
 
 const loginLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 30,
+  max: 3000,
   message: {
     message: "Too many login attempts from this IP, please try again later.",
   },
@@ -37,7 +37,7 @@ const loginLimiter = rateLimit({
 
 const verificationLimiter = rateLimit({
   windowMs: 60 * 60 * 1000, // 1 hour
-  max: 5,
+  max: 1000,
   message: {
     message:
       "Too many verification attempts from this IP, please try again later.",
@@ -48,7 +48,7 @@ const verificationLimiter = rateLimit({
 
 const passwordResetLimiter = rateLimit({
   windowMs: 60 * 60 * 1000, // 1 hour
-  max: 3,
+  max: 3000,
   message: {
     message:
       "Too many password reset attempts from this IP, please try again later.",

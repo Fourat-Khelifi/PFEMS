@@ -12,7 +12,7 @@ export const createUserStory = async (data , studentId) => {
   session.startTransaction();
 
   try {
-    const {storyName,description ,priority,storyPointEstimate,startDate,dueDate,sprintId} = data;
+    const {title,description ,priority,startDate,endDate,sprintId} = data;
 
     /** ----------------------------------------------------
      * 1. Validate that the student has a project
@@ -51,10 +51,10 @@ export const createUserStory = async (data , studentId) => {
     }
 
     /** --------------------
-     * 3. Validate UserStoryName doesnt exist in the sprint
+     * 3. Validate UserStory title doesn't exist in the sprint
      * -------------------- */
     const existingUserStory = await UserStory.findOne({
-      storyName,
+      title,
       sprintId,
       deletedAt: null
     }).session(session);
@@ -69,10 +69,10 @@ export const createUserStory = async (data , studentId) => {
      * 4. Validate dates
      * -------------------- */
     const start = new Date(startDate);
-    const due = new Date(dueDate);
+    const end = new Date(endDate);
 
-    if (due <= start) {
-      const error = new Error("Due date must be after start date");
+    if (end <= start) {
+      const error = new Error("End date must be after start date");
       error.statusCode = 400;
       throw error;
     }
@@ -82,12 +82,11 @@ export const createUserStory = async (data , studentId) => {
      * 5. Create User Story
      * ---------------------------- */
     const newUserStory = new UserStory({
-      storyName,
+      title,
       description,
       priority,
-      storyPointEstimate,
       startDate: start,
-      dueDate: due,
+      endDate: end,
       sprintId
     });
 
@@ -108,13 +107,13 @@ export const createUserStory = async (data , studentId) => {
       success: true,
       message: "User story created successfully",
       data: {
-        userStoryId: savedStory._id,
-        storyName: savedStory.storyName,
+        id: savedStory._id,
+        title: savedStory.title,
         description: savedStory.description,
         priority: savedStory.priority,
-        storyPointEstimate: savedStory.storyPointEstimate,
+
         startDate: savedStory.startDate,
-        dueDate: savedStory.dueDate,
+        endDate: savedStory.endDate,
         sprintId: savedStory.sprintId,
         createdAt: savedStory.createdAt
       }
@@ -176,10 +175,15 @@ export const getUserStories = async (projectId) => {
     })
     .sort({ startDate: 1 }); // optionnel : trier par date de début
 
+    const formattedStories = userStories.map(story => {
+      const { _id, tasks, __v, deletedAt, ...rest } = story.toObject ? story.toObject() : story;
+      return { id: _id, ...rest };
+    });
+
     return {
       success: true,
       message: "User stories retrieved successfully",
-      data: userStories
+      data: formattedStories
     };
   } catch (error) {
     return {
@@ -221,31 +225,33 @@ export const getUserStoriesRelatedToSprint = async (projectId, sprintId) => {
     deletedAt: null
   })
     .select([
-      "storyName",
+      "title",
       "description",
       "priority",
-      "storyPointEstimate",
       "startDate",
-      "dueDate",
-      "tasks"
+      "endDate"
     ])
     .sort({ createdAt: 1 })
     .lean();
 
-  return {
-    success: true,
-    message: "User stories retrieved successfully", 
-    data: {
-      sprint: {
-        id: sprint._id.toString(),
-        title: sprint.title,
-        goal: sprint.goal,
-        startDate: sprint.startDate,
-        endDate: sprint.endDate,
-        orderIndex: sprint.orderIndex,
+    return {
+      success: true,
+      message: "User stories retrieved successfully", 
+      data: {
+        sprint: {
+          id: sprint._id.toString(),
+          title: sprint.title,
+          goal: sprint.goal,
+          startDate: sprint.startDate,
+          endDate: sprint.endDate,
+          orderIndex: sprint.orderIndex,
+        },
+        userStories: userStories.map(story => {
+          const { _id, tasks, ...rest } = story;
+          return { id: _id, ...rest };
+        })
       }
-    }
-  };
+    };
 };
 
 // get US by ID
@@ -285,10 +291,12 @@ export const getUserStoryByID = async (userStoryId , projectId ) => {
   }
 
   /** 5️⃣ Tout est ok, retourner la user story avec les infos du sprint */
+  const { _id, tasks, __v, deletedAt, ...rest } = userStory;
+
   return {
     success: true,
     message: "User Story retrieved successfully",
-    data: userStory
+    data: { id: _id, ...rest }
   };
 };
 
@@ -302,12 +310,11 @@ export const updateUserStory = async (userStoryId, updateData, studentId) => {
 
   try {
     const {
-      storyName,
+      title,
       description,
       priority,
-      storyPointEstimate,
       startDate,
-      dueDate,
+      endDate,
       sprintId
     } = updateData;
 
@@ -389,19 +396,19 @@ export const updateUserStory = async (userStoryId, updateData, studentId) => {
     }
 
     /** ----------------------------------------------------
-     * 5. Validate storyName uniqueness (if storyName is being changed)
+     * 5. Validate title uniqueness (if title is being changed)
      * ---------------------------------------------------- */
-    const finalStoryName = storyName || userStory.storyName;
+    const finalTitle = title || userStory.title;
     const finalSprintId = sprintId || userStory.sprintId;
 
-    // Check uniqueness only if storyName OR sprintId is changing
+    // Check uniqueness only if title OR sprintId is changing
     if (
-      (storyName && storyName !== userStory.storyName) ||
+      (title && title !== userStory.title) ||
       isSprintChanging
     ) {
       const existingUserStory = await UserStory.findOne({
         _id: { $ne: userStoryId }, // Exclude current user story
-        storyName: finalStoryName,
+        title: finalTitle,
         sprintId: finalSprintId,
         deletedAt: null
       }).session(session);
@@ -419,10 +426,10 @@ export const updateUserStory = async (userStoryId, updateData, studentId) => {
      * 6. Validate dates
      * ---------------------------------------------------- */
     const finalStartDate = startDate ? new Date(startDate) : userStory.startDate;
-    const finalDueDate = dueDate ? new Date(dueDate) : userStory.dueDate;
+    const finalEndDate = endDate ? new Date(endDate) : userStory.endDate;
 
-    if (finalDueDate <= finalStartDate) {
-      const error = new Error("Due date must be after start date");
+    if (finalEndDate <= finalStartDate) {
+      const error = new Error("End date must be after start date");
       error.statusCode = 400;
       throw error;
     }
@@ -432,12 +439,12 @@ export const updateUserStory = async (userStoryId, updateData, studentId) => {
      * ---------------------------------------------------- */
     const updateFields = {};
 
-    if (storyName !== undefined) updateFields.storyName = storyName;
+    if (title !== undefined) updateFields.title = title;
     if (description !== undefined) updateFields.description = description;
     if (priority !== undefined) updateFields.priority = priority;
-    if (storyPointEstimate !== undefined) updateFields.storyPointEstimate = storyPointEstimate;
+
     if (startDate !== undefined) updateFields.startDate = finalStartDate;
-    if (dueDate !== undefined) updateFields.dueDate = finalDueDate;
+    if (endDate !== undefined) updateFields.endDate = finalEndDate;
     if (sprintId !== undefined) updateFields.sprintId = sprintId;
 
     const updatedUserStory = await UserStory.findByIdAndUpdate(
@@ -471,13 +478,13 @@ export const updateUserStory = async (userStoryId, updateData, studentId) => {
       success: true,
       message: "User story updated successfully",
       data: {
-        userStoryId: updatedUserStory._id,
-        storyName: updatedUserStory.storyName,
+        id: updatedUserStory._id,
+        title: updatedUserStory.title,
         description: updatedUserStory.description,
         priority: updatedUserStory.priority,
-        storyPointEstimate: updatedUserStory.storyPointEstimate,
+
         startDate: updatedUserStory.startDate,
-        dueDate: updatedUserStory.dueDate,
+        endDate: updatedUserStory.endDate,
         sprintId: updatedUserStory.sprintId,
         updatedAt: updatedUserStory.updatedAt
       }
@@ -590,8 +597,8 @@ export const deleteUserStory = async (userStoryId, studentId) => {
       success: true,
       message: "User story and associated tasks deleted successfully",
       data: {
-        userStoryId: deletedUserStory._id,
-        storyName: deletedUserStory.storyName,
+        id: deletedUserStory._id,
+        title: deletedUserStory.title,
         deletedTasksCount: deletedTasksResult.modifiedCount,
         deletedAt: deletedUserStory.deletedAt
       }

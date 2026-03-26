@@ -230,12 +230,12 @@ export const makeFullReport = async (projectId) => {
       endDate: sprint.endDate,
     })),
     userStories: userStories.map(userStory => ({
-      name: userStory.storyName,
+      title: userStory.title,
       description: userStory.description,
       priority: userStory.priority,
-      storyPointEstimate: userStory.storyPointEstimate,
+
       startDate: userStory.startDate,
-      dueDate: userStory.dueDate,
+      endDate: userStory.endDate,
     })),
     tasks: tasks.map(task => ({
       title: task.title,
@@ -270,12 +270,12 @@ export const makeSprintReport = async (sprintId) => {
       endDate: sprint.endDate,
     },
     userStories: userStories.map(userStory => ({
-      name: userStory.storyName,
+      title: userStory.title,
       description: userStory.description,
       priority: userStory.priority,
-      storyPointEstimate: userStory.storyPointEstimate,
+
       startDate: userStory.startDate,
-      dueDate: userStory.dueDate,
+      endDate: userStory.endDate,
     })),
     tasks: tasks.map(task => ({
       title: task.title,
