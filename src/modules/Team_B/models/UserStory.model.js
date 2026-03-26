@@ -43,4 +43,12 @@ UserStorySchema.index(
     { unique: true }
 );
 
-export default model('UserStory', UserStorySchema);
+const UserStory = model('UserStory', UserStorySchema);
+
+// Sync indexes to clean up old ones (like from storyName)
+UserStory.syncIndexes().catch(err => {
+    // This might fail if there's existing duplicate data from the old field format
+    console.error("Index sync warning (usually ignorable if data is clean):", err.message);
+});
+
+export default UserStory;
