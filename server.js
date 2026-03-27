@@ -21,20 +21,28 @@ const allowedOrigins = [
   "https://pfems-production.up.railway.app",
   CORS_ORIGIN
 ];
-
 app.use(cors({
   origin: function (origin, callback) {
-    // allow requests with no origin (Postman, curl)
+
+    // allow requests without origin (Postman, curl)
     if (!origin) return callback(null, true);
+
+    // allow predefined origins
     if (allowedOrigins.includes(origin)) {
       return callback(null, true);
-    } else {
-      return callback(new Error(`CORS not allowed for ${origin}`));
     }
+
+    // allow ngrok domains
+    if (origin.includes("ngrok-free.app")) {
+      return callback(null, true);
+    }
+
+    return callback(new Error(`CORS not allowed for ${origin}`));
   },
-  credentials: true, // must match fetch
+  credentials: true,
   methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
 }));
+
 // ---------------- Middleware ----------------
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));

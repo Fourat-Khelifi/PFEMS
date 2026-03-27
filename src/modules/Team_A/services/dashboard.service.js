@@ -223,7 +223,7 @@ export const getProgress = async (projectId) => {
     throw error;
   }
 
-  const sprints = (project.sprints || []).map((sprint) => {
+  const sprints = await Promise.all((project.sprints || []).map(async (sprint) => {
     const userStories = (sprint.userStories || []).map((story) => {
       const totalTasks = story.totalTasks || 0;
       const doneTasks = story.doneTasks || 0;
@@ -243,8 +243,30 @@ export const getProgress = async (projectId) => {
       return acc;
     }, { totalTasks: 0, doneTasks: 0 });
 
+    // Fetch meetings related to this project that fall into the sprint date range
+    const meetings = await Meeting.find({
+      projectId: projectObjectId,
+      scheduledDate: { $gte: sprint.startDate || new Date(0), $lte: sprint.endDate || new Date() },
+      deletedAt: null
+    })
+      .populate({ path: 'createdBy', populate: { path: 'userId', select: 'fullName email' } })
+      .lean();
+
+    const normalizedMeetings = meetings.map(m => ({
+      id: m._id,
+      scheduledDate: m.scheduledDate,
+      agenda: m.agenda,
+      referenceType: m.referenceType,
+      referenceId: m.referenceId,
+      createdBy: m.createdBy ? {
+        id: m.createdBy._id,
+        fullName: m.createdBy.userId?.fullName || null,
+        email: m.createdBy.userId?.email || null
+      } : null
+    }));
+
     return {
-      _id: sprint._id,
+      id: sprint._id,
       title: sprint.title,
       startDate: sprint.startDate,
       endDate: sprint.endDate,
@@ -253,7 +275,30 @@ export const getProgress = async (projectId) => {
       progress: computePercentage(sprintTotals.doneTasks, sprintTotals.totalTasks),
       userStories
     };
-  });
+  }));
+
+  // Fetch all meetings for the project (separate field)
+  const projectMeetings = await Meeting.find({
+    projectId: projectObjectId,
+    deletedAt: null
+  })
+    .populate({ path: 'createdBy', populate: { path: 'userId', select: 'fullName email' } })
+    .lean();
+
+  const meetings = projectMeetings.map(m => ({
+    id: m._id,
+    scheduledDate: m.scheduledDate,
+    agenda: m.agenda,
+    referenceType: m.referenceType,
+    referenceId: m.referenceId,
+    createdBy: m.createdBy ? {
+      id: m.createdBy._id,
+      fullName: m.createdBy.userId?.fullName || null,
+      email: m.createdBy.userId?.email || null
+    } : null,
+    validationStatus: m.validationStatus,
+    validatorId: m.validatorId
+  }));
 
   const projectTotals = sprints.reduce((acc, sprint) => {
     acc.totalTasks += sprint.totalTasks;
@@ -270,7 +315,8 @@ export const getProgress = async (projectId) => {
         doneTasks: projectTotals.doneTasks,
         progress: computePercentage(projectTotals.doneTasks, projectTotals.totalTasks)
       },
-      sprints
+      sprints,
+      meetings
     }
   };
 };
