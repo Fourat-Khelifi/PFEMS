@@ -26,8 +26,6 @@ app.use(cors({
 
     // allow requests without origin (Postman, curl)
     if (!origin) return callback(null, true);
-
-    // allow predefined origins
     if (allowedOrigins.includes(origin)) {
       return callback(null, true);
     }
@@ -42,7 +40,6 @@ app.use(cors({
   credentials: true,
   methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
 }));
-
 // ---------------- Middleware ----------------
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));

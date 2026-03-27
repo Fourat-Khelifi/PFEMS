@@ -169,6 +169,36 @@ router.patch("/:id", authenticateToken, authorizeStudent, validate(updateReportS
  */
 router.get("/", authenticateToken, authorizeStudent, reportController.getAllReports);
 
+// Download Report by ID
+/**
+ * @swagger
+ * /report/{id}/download:
+ *   get:
+ *     summary: Download report file
+ *     description: Downloads the uploaded report file for the given report ID. Accessible by the project student, company supervisor, or university supervisor.
+ *     tags: [Reports]
+ *     security:
+ *       - BearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The report ID
+ *         example: 507f1f77bcf86cd799439011
+ *     responses:
+ *       200:
+ *         description: File download started successfully
+ *       401:
+ *         $ref: '#/components/responses/Unauthorized'
+ *       403:
+ *         description: You don't have permission to download this report
+ *       404:
+ *         description: Report or report file not found
+ */
+router.get("/:id/download", authenticateToken, reportController.downloadReport);
+
 // Get Report by ID for Student
 /**
  * @swagger

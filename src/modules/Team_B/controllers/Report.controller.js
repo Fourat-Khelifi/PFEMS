@@ -68,6 +68,25 @@ export const getReportById = async (req, res, next) => {
   }
 };
 
+// DOWNLOAD REPORT FILE
+export const downloadReport = async (req, res, next) => {
+  try {
+    const reportId = req.params.id;
+    const { absoluteFilePath, downloadName } = await reportService.getReportDownloadData(
+      req.user,
+      reportId
+    );
+
+    res.download(absoluteFilePath, downloadName, (error) => {
+      if (error && !res.headersSent) {
+        next(error);
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 // GET ALL REPORTS FOR SUPERVISOR BY PROJECT ID
 export const getAllReportCompanySupervisor = async (req, res, next) => {
   try {

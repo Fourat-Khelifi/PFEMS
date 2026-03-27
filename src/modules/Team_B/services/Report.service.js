@@ -329,6 +329,113 @@ export const getReportById = async (studentId, reportId) => {
   };
 };
 
+/** ========================================
+ * GET REPORT DOWNLOAD DATA
+ * ======================================== */
+export const getReportDownloadData = async (user, reportId) => {
+  if (!mongoose.Types.ObjectId.isValid(reportId)) {
+    const error = new Error("Invalid report ID format");
+    error.statusCode = 400;
+    throw error;
+  }
+
+  const report = await Report.findOne({
+    _id: reportId,
+    deletedAt: null
+  }).select("_id versionLabel filePath projectId");
+
+  if (!report) {
+    const error = new Error("Report not found or deleted");
+    error.statusCode = 404;
+    throw error;
+  }
+
+  const project = await Project.findOne({
+    _id: report.projectId,
+    deletedAt: null
+  }).select("_id contributors");
+
+  if (!project) {
+    const error = new Error("Project not found or deleted");
+    error.statusCode = 404;
+    throw error;
+  }
+
+  if (user.role === "Student") {
+    const student = await Student.findOne({ userId: user.id }).select("project");
+
+    if (!student) {
+      const error = new Error("Student profile not found");
+      error.statusCode = 404;
+      throw error;
+    }
+
+    if (!student.project || String(student.project) !== String(report.projectId)) {
+      const error = new Error("Report does not belong to your project");
+      error.statusCode = 403;
+      throw error;
+    }
+  } else if (user.role === "CompSupervisor") {
+    const supervisor = await CompSupervisor.findOne({ userId: user.id }).select("userId");
+
+    if (!supervisor) {
+      const error = new Error("Company supervisor profile not found");
+      error.statusCode = 404;
+      throw error;
+    }
+
+    const supervisedStudents = await Student.find({
+      _id: { $in: project.contributors },
+      compSupervisorId: supervisor.userId
+    }).select("_id");
+
+    if (supervisedStudents.length === 0) {
+      const error = new Error("You don't have access to this report");
+      error.statusCode = 403;
+      throw error;
+    }
+  } else if (user.role === "UniSupervisor") {
+    const supervisor = await UniSupervisor.findOne({ userId: user.id }).select("userId");
+
+    if (!supervisor) {
+      const error = new Error("University supervisor profile not found");
+      error.statusCode = 404;
+      throw error;
+    }
+
+    const supervisedStudents = await Student.find({
+      _id: { $in: project.contributors },
+      uniSupervisorId: supervisor.userId
+    }).select("_id");
+
+    if (supervisedStudents.length === 0) {
+      const error = new Error("You don't have access to this report");
+      error.statusCode = 403;
+      throw error;
+    }
+  } else {
+    const error = new Error("Access denied");
+    error.statusCode = 403;
+    throw error;
+  }
+
+  const normalizedRelativePath = String(report.filePath || "").replace(/^\/+/, "");
+  const absoluteFilePath = path.join(process.cwd(), normalizedRelativePath);
+
+  if (!fs.existsSync(absoluteFilePath)) {
+    const error = new Error("Report file not found on server");
+    error.statusCode = 404;
+    throw error;
+  }
+
+  const fileExtension = path.extname(absoluteFilePath) || ".pdf";
+
+  return {
+    absoluteFilePath,
+    downloadName: `report_v${report.versionLabel}${fileExtension}`
+  };
+};
+
 
 /** ========================================
  * GET ALL REPORTS FOR Company SUPERVISOR (by projectId)
