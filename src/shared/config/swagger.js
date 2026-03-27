@@ -442,7 +442,7 @@ const swaggerDefinition = {
           priority: {
             type: 'string',
             enum: ['low', 'medium', 'high'],
-            example: 'Medium'
+            example: 'medium'
           },
           userStoryId: {
             type: 'string',
@@ -478,7 +478,7 @@ const swaggerDefinition = {
           priority: {
             type: 'string',
             enum: ['low', 'medium', 'high'],
-            example: 'High'
+            example: 'high'
           },
           userStoryId: {
             type: 'string',
@@ -511,7 +511,7 @@ const swaggerDefinition = {
           priority: {
             type: 'string',
             enum: ['low', 'medium', 'high'],
-            example: 'High'
+            example: 'high'
           },
           userStoryId: {
             type: 'string',
