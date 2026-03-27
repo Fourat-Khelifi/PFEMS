@@ -29,7 +29,7 @@ export const createSprint = async (sprintData, studentId) => {
     const sprintEnd = new Date(endDate);
     const projectStart = new Date(project.startDate);
     const projectEnd = new Date(project.endDate);
-
+    
     if (sprintStart < projectStart || sprintEnd > projectEnd) {
       const error = new Error("Sprint dates must be within the project duration");
       error.status = StatusCodes.BAD_REQUEST;
