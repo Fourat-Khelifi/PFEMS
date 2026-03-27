@@ -234,7 +234,12 @@ export const listMeetingsByStudent = async (studentId) => {
     deletedAt: null
   });
 
-  return { success: true, data: meetings };
+  const transformedMeetings = meetings.map(meeting => {
+    const { _id, ...rest } = meeting.toObject();
+    return { id: _id, ...rest };
+  });
+
+  return { success: true, data: transformedMeetings };
 };
 
 //
