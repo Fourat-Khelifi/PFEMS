@@ -202,3 +202,28 @@ export const getSprintReport = async (req, res) => {
     res.status(err.status || 500).json({ message: err.message });
   }
 };
+
+//controller for getAllTasksForProject  
+export const getAllTasksForProject = async (req, res) => {
+  try {
+    const { projectId } = req.params;
+    if (!projectId) {
+      return res.status(400).json({
+        success: false,
+        message: "Project ID is required."
+      });
+    }
+
+    const tasks = await taskService.getAllTasksForProject(projectId);
+    res.status(200).json({
+      success: true,
+      message: "Tasks retrieved successfully",
+      data: { tasks }
+    });
+  } catch (err) {
+    res.status(err.status || 500).json({
+      success: false,
+      message: err.message
+    });
+  }
+};

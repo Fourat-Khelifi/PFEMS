@@ -293,3 +293,21 @@ export const makeSprintReport = async (sprintId) => {
   };
   return report;
 };
+
+//function that retreive all the tasks for the students in a project (only the tasks)
+export const getAllTasksForProject = async (projectId) => {
+  const project = await Project.findById(projectId).populate('sprints');
+  if (!project) {
+    const error = new Error("Project not found.");
+    error.status = 404;
+    throw error;
+  }
+  //return the id as 'id' not '_id'
+  const sprints = await Sprint.find({ projectId: projectId });
+  const userStories = await UserStory.find({ sprintId: { $in: sprints.map(sprint => sprint._id) } });
+  const tasks = await Task.find({ userStoryId: { $in: userStories.map(userStory => userStory._id) } });
+  return tasks.map(task => {
+    const { _id, __v, ...rest } = task.toObject();
+    return { id: _id, ...rest };
+  });
+}
