@@ -206,11 +206,12 @@ export const getSprintReport = async (req, res) => {
 //controller for getAllTasksForProject  
 export const getAllTasksForProject = async (req, res) => {
   try {
-    const { projectId } = req.params;
+    // project id is taken from the authenticated student's profile
+    const projectId = req.student && req.student.project;
     if (!projectId) {
-      return res.status(400).json({
+      return res.status(404).json({
         success: false,
-        message: "Project ID is required."
+        message: "Student project not found."
       });
     }
 

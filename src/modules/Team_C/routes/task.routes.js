@@ -45,6 +45,24 @@ const router = express.Router();
  */
 router.post("/", authenticateToken, authorizeStudent, validate(TaskSchema), taskController.createTask);
 
+// Get all tasks for the authenticated student's project
+/**
+ * @swagger
+ * /tasks/project:
+ *   get:
+ *     summary: Get all tasks for the authenticated student's project
+ *     tags: [Tasks]
+ *     security:
+ *       - BearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Tasks retrieved successfully
+ *       404:
+ *         description: No tasks found or student has no project
+ */
+//returns only the tasks not the whole report
+router.get("/project", authenticateToken, authorizeStudent, taskController.getAllTasksForProject);
+
 // Get a task by ID
 /**
  * @swagger
@@ -334,28 +352,3 @@ router.get("/report/:projectId", authenticateToken, authorizeSupervisor, taskCon
  */
 router.get("/sprintreport/:sprintId", authenticateToken, authorizeSupervisor, taskController.getSprintReport)
 export default router;
-
-
-//add a new route to get all the tasks for the students in a project
-/**
- * @swagger
- * /tasks/project/{projectId}:
- *   get:
- *     summary: Get all tasks for the students in a project
- *     tags: [Tasks]
- *     security:
- *       - BearerAuth: []
- *     parameters:
- *       - name: projectId
- *         in: path
- *         required: true
- *         schema:
- *           type: string
- *     responses:
- *       200:
- *         description: Tasks retrieved successfully
- *       404:
- *         description: No tasks found
- */
-//returns only the tasks not the whole report
-router.get("/project/:projectId", authenticateToken, authorizeStudent, taskController.getAllTasksForProject); 
