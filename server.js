@@ -17,7 +17,7 @@ const app = express();
 
 // ---------------- CORS Setup ----------------
 const allowedOrigins = [
-  "http://localhost:5173",            
+  "http://localhost:5173",
   "https://pfems-production.up.railway.app",
   CORS_ORIGIN
 ];
@@ -33,7 +33,7 @@ app.use(cors({
     }
   },
   credentials: true, // must match fetch
-  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
 }));
 // ---------------- Middleware ----------------
 app.use(express.json());

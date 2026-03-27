@@ -40,7 +40,10 @@ export const createTask = async (data) => {
   await UserStory.findByIdAndUpdate(userStoryId, {
     $push: { tasks: newTask._id }
   });
-  return newTask;
+
+  const taskObj = newTask.toObject();
+  const { _id, __v, ...rest } = taskObj;
+  return { id: _id, ...rest };
 };
 
 //function that allows the supervisor to extract all the tasks he is envolved with 
@@ -91,7 +94,8 @@ export const getTaskById = async (id) => {
     error.status = 404;
     throw error;
   }
-  return { message: "Task retrieved successfully", task };
+  const { _id, __v, ...rest } = task.toObject();
+  return { message: "Task retrieved successfully", task: { id: _id, ...rest } };
 };
 
 
@@ -120,7 +124,8 @@ export const deleteTask = async (id) => {
     $pull: { tasks: id }
   });
 
-  return { message: "Task deleted successfully", task };
+  const { _id, __v, ...rest } = task.toObject();
+  return { message: "Task deleted successfully", task: { id: _id, ...rest } };
 };
 
 
