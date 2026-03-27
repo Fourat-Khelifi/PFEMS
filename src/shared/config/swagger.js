@@ -539,11 +539,11 @@ const swaggerDefinition = {
           },
           oldValue: {
             type: 'object',
-            example: { status: 'InProgress' }
+            example: { status: 'inprogress' }
           },
           newValue: {
             type: 'object',
-            example: { status: 'Done' }
+            example: { status: 'done' }
           },
           fieldChanged: {
             type: 'string',

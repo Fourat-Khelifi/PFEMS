@@ -164,7 +164,7 @@ export const getProgress = async (projectId) => {
                           totalTasks: { $sum: 1 },
                           doneTasks: {
                             $sum: {
-                              $cond: [{ $eq: ['$status', 'Done'] }, 1, 0]
+                              $cond: [{ $eq: ['$status', 'done'] }, 1, 0]
                             }
                           }
                         }
@@ -473,7 +473,7 @@ export const getStandbyTasks = async (projectId) => {
     // 3. Find Tasks in UserStories where status is "Standby"
     const tasks = await Task.find({
         userStoryId: { $in: userStoryIds },
-        status: 'Standby'
+        status: 'standby'
     }).populate({
         path: 'userStoryId',
         select: 'title priority'
@@ -485,7 +485,7 @@ export const getStandbyTasks = async (projectId) => {
 export const getPendingValidations = async (projectId) => {
     if (!projectId) return [];
 
-    // 1. Find Sprints -> UserStories -> Tasks (status='Done')
+    // 1. Find Sprints -> UserStories -> Tasks (status='done')
     const sprints = await Sprint.find({ projectId, deletedAt: null }).select('_id').lean();
     const sprintIds = sprints.map(s => s._id);
 
@@ -494,7 +494,7 @@ export const getPendingValidations = async (projectId) => {
 
     const doneTasks = await Task.find({
         userStoryId: { $in: userStoryIds },
-        status: 'Done'
+        status: 'done'
     }).populate({
         path: 'userStoryId',
         select: 'title'

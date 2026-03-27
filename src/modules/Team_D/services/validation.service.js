@@ -39,12 +39,12 @@ export const createValidation = async (data, validatorId) => {
     };
   }
 
-  // 3️⃣ Task must be Done
-  if (task.status !== "Done") {
+  // 3️⃣ Task must be done
+  if (task.status !== "done") {
     return {
       success: false,
       code: 400,
-      message: "Task is not marked as 'Done'"
+      message: "Task is not marked as 'done'"
     };
   }
 

@@ -89,7 +89,7 @@ Chaque équipe dispose de 4 deadlines correspondant aux mêmes périodes, avec d
   - Validations.
   - Changements de statut de tâche.
   - Dépôts de rapports.
-- Calcul et exposition des “items en Standby” (tâches bloquées).
+- Calcul et exposition des “items en standby” (tâches bloquées).
 - Finalisez toutes les fonctionnalités, complétez le collections Postman et corrigez tous les bugs restants.
 
 ---
@@ -166,7 +166,7 @@ Implémentation du CRUD complet sur les User Stories :
 - Establish linking between meetings and related items (User Stories, Tasks, Reports).
 
 ### **Deadline 2 — 30/11/2025**
-- Implement task validation feature (validate/invalidate tasks marked as “Done”).
+- Implement task validation feature (validate/invalidate tasks marked as “done”).
 
 - Add rules ensuring only enterprise/university supervisors can validate tasks.
 
@@ -223,7 +223,7 @@ Conformément au cahier des charges :
   - Encadrant universitaire :
     - Valide le **contenu des réunions**.
 - **Validations de tâches**
-  - Ne concernent que les tâches au statut `Done`.
+  - Ne concernent que les tâches au statut `done`.
   - Chaque validation contient obligatoirement :
     - Statut validé.
     - Auteur (encadrant).
