@@ -169,11 +169,7 @@ export const getUserStories = async (projectId) => {
       sprintId: { $in: sprintIds },
       deletedAt: null
     })
-      .populate({
-        path: 'sprintId',
-        select: 'title'
-      })
-      .sort({ startDate: 1 }); // optionnel : trier par date de début
+      .sort({ startDate: 1 });
 
     const formattedStories = userStories.map(story => {
       const { _id, tasks, __v, deletedAt, ...rest } = story.toObject ? story.toObject() : story;
