@@ -436,12 +436,12 @@ const swaggerDefinition = {
           description: { type: 'string', example: 'Define initial MongoDB models' },
           status: {
             type: 'string',
-            enum: ['ToDo', 'InProgress', 'Standby', 'Done'],
-            example: 'InProgress'
+            enum: ['todo', 'inprogress', 'standby', 'done'],
+            example: 'inprogress'
           },
           priority: {
             type: 'string',
-            enum: ['Low', 'Medium', 'High'],
+            enum: ['low', 'medium', 'high'],
             example: 'Medium'
           },
           userStoryId: {
@@ -472,12 +472,12 @@ const swaggerDefinition = {
           },
           status: {
             type: 'string',
-            enum: ['ToDo', 'InProgress', 'Standby', 'Done'],
-            example: 'ToDo'
+            enum: ['todo', 'inprogress', 'standby', 'done'],
+            example: 'todo'
           },
           priority: {
             type: 'string',
-            enum: ['Low', 'Medium', 'High'],
+            enum: ['low', 'medium', 'high'],
             example: 'High'
           },
           userStoryId: {
@@ -505,12 +505,12 @@ const swaggerDefinition = {
           },
           status: {
             type: 'string',
-            enum: ['ToDo', 'InProgress', 'Standby', 'Done'],
-            example: 'Done'
+            enum: ['todo', 'inprogress', 'standby', 'done'],
+            example: 'done'
           },
           priority: {
             type: 'string',
-            enum: ['Low', 'Medium', 'High'],
+            enum: ['low', 'medium', 'high'],
             example: 'High'
           },
           userStoryId: {
@@ -563,8 +563,8 @@ const swaggerDefinition = {
         properties: {
           status: {
             type: 'string',
-            enum: ['ToDo', 'InProgress', 'Standby', 'Done'],
-            example: 'Done'
+            enum: ['todo', 'inprogress', 'standby', 'done'],
+            example: 'done'
           },
           validator_id: {
             type: 'string',
@@ -610,8 +610,8 @@ const swaggerDefinition = {
           },
           task_status: {
             type: 'string',
-            enum: ['ToDo', 'InProgress', 'Standby', 'Done'],
-            example: 'Done'
+            enum: ['todo', 'inprogress', 'standby', 'done'],
+            example: 'done'
           },
           validator_status: {
             type: 'string',

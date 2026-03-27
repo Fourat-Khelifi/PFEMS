@@ -140,7 +140,7 @@ export const getAllTasksForUserStory = async (userStoryId) => {
   return { message: "Tasks retrieved successfully", tasks };
 };
 
-//function that allows the student to update the status of the task to ["ToDo", "InProgress", "Standby", "Done"] and put it inside the taskvalidator model  
+//function that allows the student to update the status of the task to ["todo", "inprogress", "standby", "done"] and put it inside the taskvalidator model  
 export const updateTaskStatus = async (id, data) => {
   const task = await Task.findById(id);
   if (!task) {

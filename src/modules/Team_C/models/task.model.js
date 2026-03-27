@@ -7,13 +7,13 @@ const taskSchema = new Schema({
   description: { type: String },
   status: {
     type: String,
-    enum: ["ToDo", "InProgress", "Standby", "Done"],
+    enum: ["todo", "inprogress", "standby", "done"],
     required: true
   },
   priority: {
     type: String,
-    enum: ["Low", "Medium", "High"],
-    default: "Medium"
+    enum: ["low", "medium", "high"],
+    default: "medium"
   },
   userStoryId: { type: Schema.Types.ObjectId, ref: "UserStory", required: true },
   assignedTo: { type: Schema.Types.ObjectId, ref: "User" },

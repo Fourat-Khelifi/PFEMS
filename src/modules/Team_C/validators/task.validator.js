@@ -11,12 +11,12 @@ export const TaskSchema = Joi.object({
   description: Joi.string().allow('').max(2000).messages({
     'string.max': 'Description cannot exceed 2000 characters'
   }),
-  status: Joi.string().valid("ToDo", "InProgress", "Standby", "Done").required().messages({
-    'any.only': 'Status must be one of [ToDo, InProgress, Standby, Done]',
+  status: Joi.string().valid("todo", "inprogress", "standby", "done").required().messages({
+    'any.only': 'Status must be one of [todo, inprogress, standby, done]',
     'any.required': 'Status is required'
   }),
-  priority: Joi.string().valid("Low", "Medium", "High").default("Medium").messages({
-    'any.only': 'Priority must be one of [Low, Medium, High]'
+  priority: Joi.string().valid("low", "medium", "high").default("medium").messages({
+    'any.only': 'Priority must be one of [low, medium, high]'
   }),
   userStoryId: Joi.string().pattern(objectIdPattern).required().messages({
     'string.pattern.base': 'User Story ID must be a valid ObjectId',
@@ -35,11 +35,11 @@ export const UpdateTaskSchema = Joi.object({
   description: Joi.string().allow('').max(2000).messages({
     'string.max': 'Description cannot exceed 2000 characters'
   }),
-  status: Joi.string().valid("ToDo", "InProgress", "Standby", "Done").messages({
-    'any.only': 'Status must be one of [ToDo, InProgress, Standby, Done]'
+  status: Joi.string().valid("todo", "inprogress", "standby", "done").messages({
+    'any.only': 'Status must be one of [todo, inprogress, standby, done]'
   }),
-  priority: Joi.string().valid("Low", "Medium", "High").messages({
-    'any.only': 'Priority must be one of [Low, Medium, High]'
+  priority: Joi.string().valid("low", "medium", "high").messages({
+    'any.only': 'Priority must be one of [low, medium, high]'
   }),
   userStoryId: Joi.string().pattern(objectIdPattern).messages({
     'string.pattern.base': 'User Story ID must be a valid ObjectId'

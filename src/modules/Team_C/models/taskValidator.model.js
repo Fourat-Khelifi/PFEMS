@@ -8,7 +8,7 @@ const taskValidatorSchema = new mongoose.Schema({
   },
   taskStatus: {
     type: String,
-    enum: ["ToDo", "InProgress", "Standby", "Done"],
+    enum: ["todo", "inprogress", "standby", "done"],
     required: true,
   },
   validatorStatus: {

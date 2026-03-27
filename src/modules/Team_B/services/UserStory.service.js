@@ -238,10 +238,10 @@ export const getUserStoriesRelatedToSprint = async (projectId, sprintId) => {
     success: true,
     message: "User stories retrieved successfully",
     data: {
-      sprintId: sprint._id,
+
       userStories: userStories.map(story => {
         const { _id, tasks, ...rest } = story;
-        return { id: _id, ...rest };
+        return { sprintId: sprint._id, id: _id, ...rest };
       })
     }
   };
