@@ -133,14 +133,16 @@ export const deleteTask = async (id) => {
 export const getAllTasksForUserStory = async (userStoryId) => {
   const tasks = await Task.find({ userStoryId });
   if (!tasks.length) {
-    const error = new Error("No tasks found for this user story.");
-    error.status = 404;
-    throw error;
+    //if there is no tasks for the userstory return empty list tasks
+    return [];
   }
-  return { message: "Tasks retrieved successfully", tasks };
+  return tasks.map(task => {
+    const { _id, __v, ...rest } = task.toObject();
+    return { id: _id, ...rest };
+  });
 };
 
-//function that allows the student to update the status of the task to ["todo", "inprogress", "standby", "done"] and put it inside the taskvalidator model  
+//function that allows the student to update the status of the task to ["todo", "in+progress", "standby", "done"] and put it inside the taskvalidator model  
 export const updateTaskStatus = async (id, data) => {
   const task = await Task.findById(id);
   if (!task) {
@@ -158,7 +160,7 @@ export const updateTaskStatus = async (id, data) => {
     taskStatus: data.status, // This is the proposed new status
     validatorId: data.validatorId,
     comment: data.comment,
-    meetingType:data.meetingType
+    meetingType: data.meetingType
   });
 
   return { message: "Task status validation request created successfully", taskValidator };

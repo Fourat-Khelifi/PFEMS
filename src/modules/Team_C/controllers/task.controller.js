@@ -128,13 +128,23 @@ export const getAllTasksForUserStory = async (req, res) => {
   try {
     const { userStoryId } = req.params;
     if (!userStoryId) {
-      return res.status(400).json({ message: "User story ID is required." });
+      return res.status(400).json({
+        success: false,
+        message: "User story ID is required."
+      });
     }
 
     const tasks = await taskService.getAllTasksForUserStory(userStoryId);
-    res.status(200).json({ message: "Tasks retrieved successfully", tasks });
+    res.status(200).json({
+      success: true,
+      message: "Tasks retrieved successfully",
+      data: { tasks }
+    });
   } catch (err) {
-    res.status(err.status || 500).json({ message: err.message });
+    res.status(err.status || 500).json({
+      success: false,
+      message: err.message
+    });
   }
 };
 //controller for updateTaskStatus
