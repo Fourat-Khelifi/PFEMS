@@ -62,6 +62,7 @@ export const createMeeting = async (data, studentId) => {
     referenceType,
     referenceId,
     actualMinutes,
+    
     projectId,
     createdBy: studentId
   });
