@@ -101,6 +101,9 @@ export const updateMeeting = async (meetingId, studentId, data) => {
   }
 
   // If reference changed, validate the new one
+
+
+  
   if (data.referenceType && data.referenceId) {
     if (!mongoose.Types.ObjectId.isValid(data.referenceId)) {
       return { success: false, code: 400, message: "Invalid referenceId" };
