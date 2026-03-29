@@ -12,7 +12,7 @@ import Student from "../../Authentication/models/student.model.js";
 // 1. CREATE MEETING
 // =========================================================
 export const createMeeting = async (data, studentId) => {
-  const { scheduledDate, agenda, referenceType, referenceId } = data;
+  const { scheduledDate, agenda, referenceType, referenceId, actualMinutes } = data;
 
   if (!scheduledDate || !referenceType) {
     return {
@@ -61,6 +61,7 @@ export const createMeeting = async (data, studentId) => {
     agenda,
     referenceType,
     referenceId,
+    actualMinutes,
     projectId,
     createdBy: studentId
   });
