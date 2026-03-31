@@ -98,26 +98,19 @@ export const getAllTasksForCompSupervisor = async (req, res) => {
 };
 export const getAllTasksForUnivSupervisor = async (req, res) => {
   try {
-    const { univSupervisorId } = req.params;
-    if (!univSupervisorId) {
+    const { userId } = req.params;
+    if (!userId) {
       return res.status(400).json({ message: "Supervisor ID is required." });
     }
 
-    // Check if the supervisor is a university supervisor
-    let supervisor = await UniSupervisor.findById(univSupervisorId);
-    let supervisorType = "University Supervisor";
+    const supervisor = await UniSupervisor.findOne({ userId });
     if (!supervisor) {
-      // If not found, check if the supervisor is a university supervisor
-      supervisor = await CompSupervisor.findById(univSupervisorId);
-      supervisorType = "Company Supervisor";
-
-      if (!supervisor) {
-        return res.status(404).json({ message: "Supervisor not found." });
-      }
+      return res.status(404).json({ message: "Supervisor not found." });
     }
+
     // Fetch tasks for the supervisor
-    const tasks = await taskService.getAllTasksForUnivSupervisor(univSupervisorId);
-    res.status(200).json({ message: `${supervisorType} tasks retrieved successfully`, tasks });
+    const tasks = await taskService.getAllTasksForUnivSupervisor(userId);
+    res.status(200).json({ message: "University Supervisor tasks retrieved successfully", tasks });
   } catch (err) {
     res.status(err.status || 500).json({ message: err.message });
   }
@@ -169,7 +162,12 @@ export const validateTaskStatus = async (req, res) => {
       return res.status(400).json({ message: "Task ID is required." });
     }
 
-    const task = await taskService.validateTaskStatus(id, req.body);
+    // enforce validatorId from authenticated user for security
+    const validatorId = req.user?.id || req.supervisor?.userId || null;
+    const payload = { ...(req.body || {}) };
+    if (validatorId) payload.validatorId = validatorId;
+
+    const task = await taskService.validateTaskStatus(id, payload);
     res.status(200).json({ message: "Task validated successfully", task });
   } catch (err) {
     res.status(err.status || 500).json({ message: err.message });

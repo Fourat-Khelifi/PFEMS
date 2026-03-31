@@ -176,14 +176,14 @@ router.get("/compsupervisor/:compSupervisorId", authenticateToken, authorizeSupe
 // Get all tasks for a specific university supervisor
 /**
  * @swagger
- * /tasks/univsupervisor/{univSupervisorId}:
+ * /tasks/univsupervisor/{userId}:
  *   get:
  *     summary: Get all tasks related to a university supervisor
  *     tags: [Tasks]
  *     security:
  *       - BearerAuth: []
  *     parameters:
- *       - name: univSupervisorId
+ *       - name: userId
  *         required: true
  *         in: path
  *         schema:
@@ -194,7 +194,7 @@ router.get("/compsupervisor/:compSupervisorId", authenticateToken, authorizeSupe
  *       404:
  *         description: Supervisor not found
  */
-router.get("/univsupervisor/:univSupervisorId", authenticateToken, authorizeSupervisor, taskController.getAllTasksForUnivSupervisor);
+router.get("/univsupervisor/:userId", authenticateToken, authorizeSupervisor, taskController.getAllTasksForUnivSupervisor);
 
 
 // Get all tasks for a specific user story

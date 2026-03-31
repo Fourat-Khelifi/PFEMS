@@ -7,6 +7,53 @@ import TaskValidator from "../models/taskValidator.model.js"
 import TaskHistory from "../models/taskHistory.model.js"
 import Sprint from "../../Team_A/models/sprint.model.js"
 
+const NO_VALIDATION_REQUEST = "none";
+const PENDING_VALIDATION_REQUEST = "in progress";
+
+const getLatestTaskValidationStatusMap = async (taskIds) => {
+  if (!taskIds.length) {
+    return new Map();
+  }
+  // fetch validators and include identifying fields so frontend can find the validation id
+  const validators = await TaskValidator.find({
+    taskId: { $in: taskIds },
+  })
+    .sort({ createdAt: -1 })
+    .select("taskId validatorStatus taskStatus validatorId comment createdAt");
+
+  const latestValidationByTask = new Map();
+  for (const validator of validators) {
+    const key = validator.taskId.toString();
+    if (!latestValidationByTask.has(key)) {
+      // store the full validator document (as plain object) for downstream use
+      latestValidationByTask.set(key, validator.toObject());
+    }
+  }
+
+  return latestValidationByTask;
+};
+
+const attachValidationStatusToTask = (task, validationStatusMap) => {
+  const taskObject = task.toObject();
+  const { _id, __v, ...rest } = taskObject;
+
+  const validatorObj = validationStatusMap.get(_id.toString()) || null;
+  const taskValidationStatus = validatorObj?.validatorStatus || NO_VALIDATION_REQUEST;
+  const isWaitingValidation = taskValidationStatus === PENDING_VALIDATION_REQUEST;
+  const isValidated = taskValidationStatus === "valid" || taskValidationStatus === NO_VALIDATION_REQUEST;
+
+  return {
+    id: _id,
+    ...rest,
+    taskValidationStatus,
+    isWaitingValidation,
+    isValidated,
+    // expose the last validation object so frontend can find the validation id and requested status
+    lastValidation: validatorObj,
+    taskValidationId: validatorObj?._id || null,
+  };
+};
+
 async function verifyUserStoryExists(userStoryId) {
   const userStory = await UserStory.findById(userStoryId);
   if (!userStory) {
@@ -61,11 +108,15 @@ export const getAllTasksForCompSupvisor = async (compSupervisorId) => {
   const userStories = await UserStory.find({ sprintId: { $in: sprintIds } });
   const userStoryIds = userStories.map(userStory => userStory._id);
   const tasks = await Task.find({ userStoryId: { $in: userStoryIds } });
-  return { message: "Tasks retrieved successfully", tasks };
+
+  const validationStatusMap = await getLatestTaskValidationStatusMap(tasks.map(task => task._id));
+  const enrichedTasks = tasks.map(task => attachValidationStatusToTask(task, validationStatusMap));
+
+  return { message: "Tasks retrieved successfully", tasks: enrichedTasks };
 };
 //function that allows the university supervisor to extract all the tasks he is envolved with 
-export const getAllTasksForUnivSupervisor = async (univSupervisorId) => {
-  const univSupervisor = await UnivSupervisor.findById(univSupervisorId).populate('studentsId');
+export const getAllTasksForUnivSupervisor = async (userId) => {
+  const univSupervisor = await UnivSupervisor.findOne({ userId }).populate('studentsId');
   if (!univSupervisor) {
     const error = new Error("University supervisor not found.");
     error.status = 404;
@@ -82,7 +133,11 @@ export const getAllTasksForUnivSupervisor = async (univSupervisorId) => {
 
   // Fetch all tasks that belong to these user stories
   const tasks = await Task.find({ userStoryId: { $in: userStoryIds } });
-  return { message: "Tasks retrieved successfully", tasks };
+
+  const validationStatusMap = await getLatestTaskValidationStatusMap(tasks.map(task => task._id));
+  const enrichedTasks = tasks.map(task => attachValidationStatusToTask(task, validationStatusMap));
+
+  return { message: "Tasks retrieved successfully", tasks: enrichedTasks };
 };
 
 
@@ -94,8 +149,10 @@ export const getTaskById = async (id) => {
     error.status = 404;
     throw error;
   }
-  const { _id, __v, ...rest } = task.toObject();
-  return { message: "Task retrieved successfully", task: { id: _id, ...rest } };
+  const validationStatusMap = await getLatestTaskValidationStatusMap([task._id]);
+  const enrichedTask = attachValidationStatusToTask(task, validationStatusMap);
+
+  return { message: "Task retrieved successfully", task: enrichedTask };
 };
 
 
@@ -136,10 +193,9 @@ export const getAllTasksForUserStory = async (userStoryId) => {
     //if there is no tasks for the userstory return empty list tasks
     return [];
   }
-  return tasks.map(task => {
-    const { _id, __v, ...rest } = task.toObject();
-    return { id: _id, ...rest };
-  });
+
+  const validationStatusMap = await getLatestTaskValidationStatusMap(tasks.map(task => task._id));
+  return tasks.map(task => attachValidationStatusToTask(task, validationStatusMap));
 };
 
 //function that allows the student to update the status of the task to ["todo", "in+progress", "standby", "done"] and put it inside the taskvalidator model  
@@ -180,6 +236,14 @@ export const validateTaskStatus = async (id, data) => {
     error.status = 404;
     throw error;
   }
+  // allow caller to provide the validatorId (supervisor id) so history records the correct user
+  if (data?.validatorId) {
+    try {
+      taskValidator.validatorId = data.validatorId;
+    } catch (e) {
+      // ignore if invalid id
+    }
+  }
 
   if (data.validatorStatus === "valid") {
     const oldStatus = task.status;
@@ -197,7 +261,7 @@ export const validateTaskStatus = async (id, data) => {
     await TaskValidator.findByIdAndDelete(id);
     return { message: "Task status updated and validated successfully", task };
   } else {
-    taskValidator.status = data.validatorStatus;
+    taskValidator.validatorStatus = data.validatorStatus;
     await taskValidator.save();
     return { message: "Task validation request updated", taskValidator };
   }
@@ -223,6 +287,7 @@ export const makeFullReport = async (projectId) => {
 
   // Fetch tasks associated with these user stories
   const tasks = await Task.find({ userStoryId: { $in: userStoryIds } });
+  const validationStatusMap = await getLatestTaskValidationStatusMap(tasks.map(task => task._id));
 
   const report = {
     project: {
@@ -244,12 +309,18 @@ export const makeFullReport = async (projectId) => {
       startDate: userStory.startDate,
       endDate: userStory.endDate,
     })),
-    tasks: tasks.map(task => ({
-      title: task.title,
-      description: task.description,
-      status: task.status,
-      priority: task.priority,
-    })),
+    tasks: tasks.map(task => {
+      const enrichedTask = attachValidationStatusToTask(task, validationStatusMap);
+      return {
+        title: task.title,
+        description: task.description,
+        status: task.status,
+        priority: task.priority,
+        taskValidationStatus: enrichedTask.taskValidationStatus,
+        isWaitingValidation: enrichedTask.isWaitingValidation,
+        isValidated: enrichedTask.isValidated,
+      };
+    }),
   };
   return report;
 };
@@ -269,6 +340,7 @@ export const makeSprintReport = async (sprintId) => {
 
   // Fetch tasks associated with these user stories
   const tasks = await Task.find({ userStoryId: { $in: userStoryIds } });
+  const validationStatusMap = await getLatestTaskValidationStatusMap(tasks.map(task => task._id));
 
   const report = {
     sprint: {
@@ -284,12 +356,18 @@ export const makeSprintReport = async (sprintId) => {
       startDate: userStory.startDate,
       endDate: userStory.endDate,
     })),
-    tasks: tasks.map(task => ({
-      title: task.title,
-      description: task.description,
-      status: task.status,
-      priority: task.priority,
-    })),
+    tasks: tasks.map(task => {
+      const enrichedTask = attachValidationStatusToTask(task, validationStatusMap);
+      return {
+        title: task.title,
+        description: task.description,
+        status: task.status,
+        priority: task.priority,
+        taskValidationStatus: enrichedTask.taskValidationStatus,
+        isWaitingValidation: enrichedTask.isWaitingValidation,
+        isValidated: enrichedTask.isValidated,
+      };
+    }),
   };
   return report;
 };
@@ -300,8 +378,7 @@ export const getAllTasksForProject = async (projectId) => {
   const sprints = await Sprint.find({ projectId: projectId });
   const userStories = await UserStory.find({ sprintId: { $in: sprints.map(sprint => sprint._id) } });
   const tasks = await Task.find({ userStoryId: { $in: userStories.map(userStory => userStory._id) } });
-  return tasks.map(task => {
-    const { _id, __v, ...rest } = task.toObject();
-    return { id: _id, ...rest };  
-  });
+
+  const validationStatusMap = await getLatestTaskValidationStatusMap(tasks.map(task => task._id));
+  return tasks.map(task => attachValidationStatusToTask(task, validationStatusMap));
 }

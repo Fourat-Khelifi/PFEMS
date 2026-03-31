@@ -175,9 +175,9 @@ export const changeMeetingReference = async (req, res, next) => {
 // =========================================================
 export const listPendingValidation = async (req, res, next) => {
   try {
-    const projectId = req.query.projectId;
+    const supervisorId = req.supervisor.id;
 
-    const result = await meetingService.listPendingValidation(projectId);
+    const result = await meetingService.listPendingValidation(supervisorId);
 
     res.status(StatusCodes.OK).json(result);
   } catch (error) {

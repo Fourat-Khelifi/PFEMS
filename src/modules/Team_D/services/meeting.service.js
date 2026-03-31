@@ -6,6 +6,7 @@ import Project from "../../Team_A/models/project.model.js";
 import Report from "../../Team_B/models/report.model.js";
 import UserStory from "../../Team_B/models/UserStory.model.js";
 import Student from "../../Authentication/models/student.model.js";
+import UniSupervisor from "../../Authentication/models/uniSupervisor.model.js";
 
 //
 // =========================================================
@@ -351,14 +352,21 @@ export const changeReference = async (meetingId, studentId, data) => {
 // =========================================================
 // 10. LIST PENDING VALIDATION
 // =========================================================
-export const listPendingValidation = async (projectId) => {
-  const project = await Project.findById(projectId);
-  if (!project) {
-    return { success: false, code: 404, message: "Project not found" };
+export const listPendingValidation = async (supervisorId) => {
+  if (!mongoose.Types.ObjectId.isValid(supervisorId)) {
+    return { success: false, code: 400, message: "Invalid supervisor ID" };
   }
 
+  const supervisor = await UniSupervisor.findById(supervisorId).populate("studentsId");
+  
+  if (!supervisor) {
+    return { success: false, code: 404, message: "Supervisor not found" };
+  }
+
+  const studentIds = supervisor.studentsId.map(student => student._id);
+
   const meetings = await Meeting.find({
-    projectId,
+    createdBy: { $in: studentIds },
     validationStatus: "pending",
     deletedAt: null
   }).populate("createdBy", "firstName lastName");

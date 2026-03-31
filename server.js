@@ -46,33 +46,40 @@ app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 app.use(logger("combined"));
 
-// ---------------- Connect DB ----------------
-console.log("Attempting to connect to DB...");
-await connectDB();
-console.log("DB connected successfully.");
+const startServer = async () => {
+  // ---------------- Connect DB ----------------
+  console.log("Attempting to connect to DB...");
+  await connectDB();
+  console.log("DB connected successfully.");
 
-// ---------------- Swagger ----------------
-app.use(
-  "/docs",
-  swaggerUi.serve,
-  swaggerUi.setup(swaggerSpec, {
-    explorer: true,
-    customSiteTitle: "PFE Management API Docs",
-  }),
-);
+  // ---------------- Swagger ----------------
+  app.use(
+    "/docs",
+    swaggerUi.serve,
+    swaggerUi.setup(swaggerSpec, {
+      explorer: true,
+      customSiteTitle: "PFE Management API Docs",
+    }),
+  );
 
-// ---------------- Routes ----------------
-app.use("/api", authRouter);
-app.use("/api", teamARouter);
-app.use("/api", teamBRouter);
-app.use("/api", teamCRouter);
-app.use("/api", teamDRouter);
+  // ---------------- Routes ----------------
+  app.use("/api", authRouter);
+  app.use("/api", teamARouter);
+  app.use("/api", teamBRouter);
+  app.use("/api", teamCRouter);
+  app.use("/api", teamDRouter);
 
-// ---------------- Error Middleware ----------------
-app.use(errorMiddleware);
+  // ---------------- Error Middleware ----------------
+  app.use(errorMiddleware);
 
-// ---------------- Start Server ----------------
-console.log(`Starting server on port ${PORT}...`);
-app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
+  // ---------------- Start Server ----------------
+  console.log(`Starting server on port ${PORT}...`);
+  app.listen(PORT, () => {
+    console.log(`Server is running on port ${PORT}`);
+  });
+};
+
+startServer().catch((error) => {
+  console.error("Failed to start server:", error.message);
+  process.exit(1);
 });
